@@ -1,26 +1,107 @@
-*{box-sizing:border-box}
-body{margin:0;background:#0b0d10;color:#e9eef5;font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
-.wrap{max-width:900px;margin:0 auto;padding:24px}
-h1{font-size:28px;margin:0 0 8px}
-.hint{opacity:.75;margin:0 0 20px}
-.player-card{background:#12151a;border:1px solid #21262d;border-radius:16px;box-shadow:0 6px 20px rgba(0,0,0,.35);padding:16px}
-.now{margin-bottom:8px}
-.meta{margin-bottom:10px}
-.track-title{font-weight:700;font-size:18px}
-.track-sub{opacity:.8;font-size:14px}
-.controls{display:flex;align-items:center;gap:8px;margin-bottom:8px}
-.controls button{background:#222834;color:#e9eef5;border:1px solid #2e3440;border-radius:10px;padding:8px 10px;cursor:pointer}
-.controls button:hover{background:#2a3242}
-.time{margin-left:auto;opacity:.8}
-#seek{width:100%}
-.list{list-style:none;margin:8px 0 0;padding:0;max-height:420px;overflow:auto;border-top:1px solid #1f2430}
-.item{display:flex;gap:12px;align-items:center;padding:10px 8px;border-bottom:1px solid #1f2430;cursor:pointer}
-.item:hover{background:#161a22}
-.item.active{background:#1b2130}
-.item-num{width:28px;opacity:.6;text-align:right}
-.item-meta{flex:1 1 auto;min-width:0}
-.item-title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.item-sub{opacity:.7;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.item-len{opacity:.7;width:56px;text-align:right}
-footer{margin-top:16px;opacity:.7}
-code{background:#1a1f2b;border:1px solid #2a3140;border-radius:6px;padding:2px 6px}
+/* ====== ТЕМА WOW SCHOOL (фиолетовая) ====== */
+:root{
+  /* Базовая палитра. При желании подстройте один цвет — остальное подтянется. */
+  --bg: #0c0b10;         /* фон страницы */
+  --card: #141425;       /* карточки/контейнеры */
+  --text: #f4f4f8;       /* основной текст */
+  --muted: #a6a6b8;      /* вторичный текст */
+  --border: #26263b;     /* разделители */
+  --accent: #7c3aed;     /* фирменный фиолетовый */
+  --accent-2: #a78bfa;   /* светлый фиолетовый для ховеров */
+}
+
+/* Базовые */
+*{ box-sizing:border-box; }
+html,body{ height:100%; }
+body{
+  margin:0;
+  font:16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  color:var(--text);
+  background: radial-gradient(90vw 60vh at 20% -10%, #201a40 0%, transparent 55%),
+              radial-gradient(80vw 60vh at 120% -30%, #1a1336 0%, transparent 60%),
+              var(--bg);
+}
+
+.wrap{
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 28px 20px 60px;
+}
+
+/* ====== HEADER ====== */
+.site-header{ padding: 6px 0 10px; }
+.brand{ display:flex; align-items:center; gap:14px; }
+.brand-logo{
+  width:44px; height:44px; object-fit:contain;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,.25));
+}
+.brand-text{
+  font-weight:900; letter-spacing:.06em; text-transform:uppercase;
+  font-size:13px; color:var(--accent-2);
+}
+.album-title{
+  margin:0; font-size:26px; font-weight:900; letter-spacing:.02em;
+}
+
+/* ====== ПЛЕЕР ====== */
+.player-card{
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.35);
+}
+
+.now{ display:grid; grid-template-columns: 1fr auto; gap: 12px 16px; align-items:center; }
+.meta{ min-width:0; }
+.track-title{ font-size:18px; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.track-sub{ color:var(--muted); font-size:13px; margin-top:2px; }
+
+.controls{ display:flex; gap: 8px; justify-content:flex-end; }
+.btn{
+  background: #1a1a2e;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 10px;
+  cursor: pointer;
+  transition: .15s ease;
+}
+.btn:hover{ border-color: var(--accent); box-shadow: 0 0 0 2px rgba(124,58,237,.2) inset; }
+
+.seek{ grid-column: 1 / -1; display:grid; grid-template-columns: 1fr auto; gap:10px; align-items:center; }
+#seek{
+  -webkit-appearance: none; appearance: none; width:100%;
+  height: 6px; border-radius: 999px; background: #26263b; outline:none;
+}
+#seek::-webkit-slider-thumb{
+  -webkit-appearance: none; appearance: none;
+  width: 14px; height:14px; border-radius:50%;
+  background: var(--accent); box-shadow: 0 0 0 4px rgba(124,58,237,.28);
+}
+#seek::-moz-range-thumb{
+  width: 14px; height:14px; border:none; border-radius:50%;
+  background: var(--accent);
+}
+.time{ font-size:12px; color:var(--muted); }
+
+.list{ list-style:none; padding:6px 0 0; margin:12px 0 0; max-height: 520px; overflow:auto; }
+.row{
+  display:grid; grid-template-columns: 36px 1fr;
+  align-items:center; column-gap: 8px;
+  border-bottom: 1px dashed rgba(255,255,255,.05);
+}
+.row:last-child{ border-bottom: none; }
+.no{ text-align:right; font-variant: tabular-nums; color:var(--muted); }
+
+.row-btn{
+  display:grid; grid-template-columns: 1fr auto; gap:8px;
+  width:100%; text-align:left; background:transparent; color:inherit;
+  border:none; padding:12px 8px; cursor:pointer; border-radius:10px;
+  transition: .15s ease;
+}
+.row-btn:hover{ background: rgba(124,58,237,.08); }
+.row.active .row-btn{ background: rgba(124,58,237,.16); }
+
+.row-title{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.row-len{ color:var(--muted); font-variant: tabular-nums; }
