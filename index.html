@@ -8,6 +8,15 @@
   <link rel="stylesheet" href="style.css?v=4" />
 </head>
 <body>
+  <!-- Обложка (постер) поверх плеера -->
+<div id="poster" class="poster" role="button" aria-label="Открыть плеер" tabindex="0">
+  <img src="cover.jpg" alt="English File — Beginner (cover)" />
+  <button class="poster-play" aria-label="Play">
+    <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
+      <path d="M8 5v14l11-7z" fill="currentColor"></path>
+    </svg>
+  </button>
+</div>
   <header class="site-head">
     <div class="brand">WOW SCHOOL</div>
     <h1 class="page-title">English File: Beginner</h1>
@@ -187,5 +196,35 @@
     });
   })();
   </script>
+  <script>
+  (function () {
+    const poster = document.getElementById('poster');
+    if (!poster) return;
+
+    // Найдём первый <audio> вашего плеера
+    const audio = document.querySelector('audio');
+
+    function hidePosterAndPlay() {
+      poster.classList.add('hide');
+      if (audio) {
+        audio.play().catch(() => {/* автоплей может быть заблокирован — не страшно */});
+      }
+    }
+
+    poster.addEventListener('click', hidePosterAndPlay);
+    poster.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        hidePosterAndPlay();
+      }
+    });
+
+    // На всякий случай: если пользователь кликнет по списку треков — спрячем постер
+    document.addEventListener('click', function once() {
+      poster.classList.add('hide');
+      document.removeEventListener('click', once);
+    }, { capture: true });
+  })();
+</script>
 </body>
 </html>
