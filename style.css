@@ -1,114 +1,129 @@
 :root{
-  --bg: #0d0d12;
-  --bg-card: #13131a;
-  --text: #e9e9f1;
-  --text-dim: #bdbdd3;
-  --purple: #7b4dff;      /* основной фирменный */
-  --purple-2: #a784ff;    /* подсветки/градиент */
-  --accent: #9d66ff;
-  --row: #1a1a25;
-  --row-active: #2a1c47;
-  --row-border: #2a2a3b;
-  --shadow: 0 20px 50px rgba(0,0,0,.45);
-  --radius: 18px;
+  /* Фирменные */
+  --bg:       #7f6bfe;      /* общий фон */
+  --bg-2:     #0f0c1b;      /* градиент */
+  --card:     #12101d;      /* карточки */
+  --row:      #161327;
+  --row-act:  #2b1e4c;
+  --text:     #ececf4;      /* основной текст */
+  --text-dim: #bcc2d8;      /* вторичный */
+
+  --purple:   #7b4dff;      /* акцент */
+  --purple-2: #a27bff;      /* подсветка */
+  --shadow:   0 22px 60px rgba(0,0,0,.40);
+  --radius:   16px;
 }
 
-*{ box-sizing:border-box }
+/* базовые */
+*,*::before,*::after{ box-sizing:border-box }
 html,body{ height:100% }
 body{
   margin:0;
-  font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;
+  font:16px/1.5 system-ui,-apple-system,Segoe UI,Inter,Arial,sans-serif;
   color:var(--text);
   background:
-    radial-gradient(1200px 1200px at 10% -20%, #2a1c47 0%, transparent 60%),
-    radial-gradient(900px 900px at 90% 10%, #2a1c47 0%, transparent 55%),
-    linear-gradient(180deg, #120d1f 0%, var(--bg) 60%);
-  min-height:100%;
+    radial-gradient(900px 900px at 10% 20%, #2a1c47 0%, transparent 60%),
+    radial-gradient(1000px 1000px at 80% 5%,  #1e1640 0%, transparent 65%),
+    linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
 }
 
-.topbar{
-  position:sticky; top:0; z-index:10;
-  padding:18px 22px;
-  background:linear-gradient(180deg, rgba(10,10,16,.85), rgba(10,10,16,.35));
-  backdrop-filter: blur(8px);
-  border-bottom:1px solid rgba(255,255,255,.05);
+/* шапка */
+.site-head{
+  max-width:1080px; margin:24px auto 8px; padding:0 16px;
 }
 .brand{
-  display:flex; align-items:center; gap:12px;
-  letter-spacing:.08em; font-weight:800; color:#fff;
+  font-weight:700; letter-spacing:.12em; font-size:.8rem; color:var(--purple-2);
 }
-.brand-text{ font-size:14px; color:#cfc7ff; }
-.brand-logo{ height:26px; width:auto }
 .page-title{
-  margin:6px 0 0; font-size:28px; font-weight:800;
-  background: linear-gradient(90deg,var(--purple),var(--purple-2));
+  margin:.25rem 0 0; font-size:clamp(20px, 2.6vw, 28px); font-weight:800;
+  background: linear-gradient(90deg,var(--text) 0%, var(--text-dim) 80%);
   -webkit-background-clip:text; background-clip:text; color:transparent;
 }
 
-.wrap{ padding:24px; max-width:1100px; margin:0 auto; }
-
+/* карточка плеера */
 .player-card{
-  background:linear-gradient(180deg, rgba(123,77,255,.09), rgba(123,77,255,.02)) , var(--bg-card);
-  border:1px solid rgba(255,255,255,.08);
-  box-shadow:var(--shadow);
-  border-radius:var(--radius);
-  padding:18px;
+  max-width:1080px; margin:12px auto 32px; padding:16px; border-radius:calc(var(--radius) + 4px);
+  background: linear-gradient(180deg,#0f0b1a 0%, #0c0a14 100%);
+  box-shadow: var(--shadow);
+  border:1px solid rgba(255,255,255,.06);
+  position:relative;
 }
 
-.now{ display:flex; justify-content:space-between; align-items:flex-start; gap:14px; }
-.meta{ display:flex; flex-direction:column; gap:4px; }
-.track-title{ font-weight:700; font-size:20px; }
-.track-sub{ color:var(--text-dim); font-size:13px; }
+/* now playing */
+.now{ padding:14px 14px 10px; border-radius:12px; background:var(--card); margin-bottom:10px; }
+.np-top{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.np-title{ font-weight:700; letter-spacing:.01em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.np-time{ color:var(--text-dim); font-variant-numeric:tabular-nums; }
 
-.controls{ display:flex; gap:8px; }
-.btn{
-  background:linear-gradient(180deg, #1b1530, #171324);
-  border:1px solid rgba(255,255,255,.08);
-  color:#fff; padding:8px 10px; border-radius:10px; cursor:pointer;
+/* progress */
+.seek{
+  -webkit-appearance:none; appearance:none; width:100%; margin:14px 0 0; height:6px; border-radius:999px;
+  background: linear-gradient(90deg, var(--purple) 0%, var(--purple) 0) no-repeat, #1e1931;
+  background-size:0% 100%;
 }
-.btn:hover{ border-color: rgba(157,102,255,.6) }
-
-.progress{ margin:10px 0 8px }
-input[type="range"]{
-  width:100%; appearance:none; height:6px; border-radius:6px;
-  background: linear-gradient(90deg, var(--purple), var(--purple-2));
-  outline:none;
+.seek::-webkit-slider-thumb{
+  -webkit-appearance:none; appearance:none; width:14px; height:14px; background:var(--purple-2); border-radius:50%;
+  box-shadow:0 0 0 6px rgba(123,77,255,.15);
+  border:0;
 }
-input[type="range"]::-webkit-slider-thumb{
-  appearance:none; width:14px; height:14px; border-radius:50%;
-  background:#fff; border:2px solid var(--accent);
+.seek::-moz-range-thumb{
+  width:14px; height:14px; background:var(--purple-2); border-radius:50%; border:0;
+  box-shadow:0 0 0 6px rgba(123,77,255,.15);
 }
 
-.list-wrap{
-  border:1px solid var(--row-border);
-  border-radius:14px; overflow:hidden; background:rgba(10,10,16,.25);
-  height:min(70vh, 720px);
-}
-.list{ list-style:none; margin:0; padding:0; height:100%; overflow:auto; }
+/* обновляем заливку прогресс-бара скриптом через style.backgroundSize */
+#audio:not(:paused) ~ .player-card .seek{}
 
-.row{ border-bottom:1px solid var(--row-border); }
-.row:last-child{ border-bottom:none; }
+/* список треков */
+.tracklist{
+  list-style:none; padding:8px; margin:0; border-radius:12px; background:var(--card);
+  max-height:52vh; overflow:auto; scrollbar-width:thin;
+  border:1px solid rgba(255,255,255,.04);
+}
+.row{
+  display:grid; grid-template-columns:44px 1fr 64px; align-items:center; gap:8px;
+  padding:10px 12px; border-radius:10px; cursor:pointer; user-select:none;
+  color:var(--text);
+}
+.row + .row{ margin-top:4px; }
+.row:hover{ background:rgba(255,255,255,.05) }
+.row.active{ background:var(--row-act); box-shadow: inset 0 0 0 1px rgba(255,255,255,.06) }
+.t-num{ color:var(--text-dim); text-align:center; font-variant-numeric: tabular-nums; opacity:.9 }
+.t-title{ overflow:hidden; white-space:nowrap; text-overflow:ellipsis; opacity:.96 }
+.t-len{ color:var(--text-dim); text-align:right; font-variant-numeric: tabular-nums }
 
-.row-btn{
-  width:100%; display:grid; grid-template-columns:40px 1fr auto;
-  gap:14px; align-items:center;
-  padding:10px 14px; background:var(--row); color:var(--text);
-  border:none; cursor:pointer; text-align:left;
+/* нижние КНОПКИ УПРАВЛЕНИЯ (центр) */
+.controls{
+  position:sticky; bottom:-1px; /* прилипают к низу карточки */
+  display:flex; align-items:center; justify-content:center; gap:22px;
+  padding:16px 10px 8px; margin-top:10px;
+  background:linear-gradient(180deg, rgba(12,10,20,0) 0%, rgba(12,10,20,.9) 45%, rgba(12,10,20,1) 100%);
+  border-bottom-left-radius: inherit; border-bottom-right-radius: inherit;
 }
-.row:hover{ filter:brightness(1.03) }
-.row.active .row-btn{
-  background: var(--row-active);
-  box-shadow: inset 0 0 0 1px rgba(157,102,255,.5);
+.ctrl{
+  background: #1c1730; border:1px solid rgba(255,255,255,.08);
+  color:var(--text); border-radius:999px; cursor:pointer;
+  display:grid; place-items:center; transition:.15s ease; box-shadow:0 6px 18px rgba(0,0,0,.25);
 }
-.row-idx{
-  width:32px; height:24px; display:grid; place-items:center;
-  font-size:12px; color:#ddd; background:#211a34; border-radius:8px;
-}
-.row-title{ overflow:hidden; white-space:nowrap; text-overflow:ellipsis }
-.row-time{ color:var(--text-dim); font-variant-numeric:tabular-nums }
+.ctrl:hover{ transform:translateY(-1px); border-color:rgba(255,255,255,.14) }
+.ctrl:active{ transform:translateY(0) }
 
-.foot{ height:24px } /* просто отступ снизу для дыхания */
-@media (max-width:600px){
-  .now{ flex-direction:column; align-items:flex-start }
-  .page-title{ font-size:24px }
+.ctrl-sm{ width:54px; height:54px }
+.ctrl-lg{ width:84px; height:84px; background:linear-gradient(180deg, var(--purple) 0%, #5a3df3 100%); border:0 }
+.ctrl svg{ width:26px; height:26px; fill:currentColor }
+.ctrl-lg svg{ width:38px; height:38px; fill:white }
+
+.ctrl-lg .icon-pause{ display:none }
+.ctrl-lg.is-playing .icon-play{ display:none }
+.ctrl-lg.is-playing .icon-pause{ display:block }
+
+/* адаптив — ужимаем сетку, НО заголовок не скрываем */
+@media (max-width:900px){
+  .tracklist{ max-height:56vh }
+  .row{ grid-template-columns:36px 1fr 56px; gap:6px; padding:9px 10px }
+  .ctrl-sm{ width:52px; height:52px }
+  .ctrl-lg{ width:80px; height:80px }
+}
+@media (max-width:560px){
+  .row{ grid-template-columns:32px 1fr 52px }
 }
