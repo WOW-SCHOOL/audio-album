@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Аудио-альбом</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1 id="albumTitle">Альбом</h1>
+    <p class="hint">Положите MP3/OGG в папку <code>tracks/</code> и перечислите их в <code>playlist.json</code>. Эту страницу можно вставить в Miro через iFrame.</p>
+  </header>
+
+  <main>
+    <div class="player-card">
+      <div class="now">
+        <div class="meta">
+          <div class="track-title" id="trackTitle">—</div>
+          <div class="track-sub" id="trackSub">—</div>
+        </div>
+        <div class="controls">
+          <button id="prevBtn" title="Предыдущий">⏮</button>
+          <button id="playBtn" title="Воспроизвести/Пауза">▶️/⏸</button>
+          <button id="nextBtn" title="Следующий">⏭</button>
+          <div class="time"><span id="cur">0:00</span> / <span id="dur">0:00</span></div>
+        </div>
+        <audio id="audio" preload="metadata"></audio>
+        <input id="seek" type="range" min="0" max="100" value="0" step="0.1">
+      </div>
+
+      <ul id="list" class="list"></ul>
+    </div>
+  </main>
+
+  <footer>
+    <small>Вставка в Miro: <code>&lt;iframe src="https://ВАШ-ДОМЕН/index.html" width="100%" height="520" frameborder="0" allow="autoplay"&gt;&lt;/iframe&gt;</code></small>
+  </footer>
+</div>
+
+<script>
+function fmtTime(s){ if(!isFinite(s)) return "0:00"; s=Math.floor(s); const m=Math.floor(s/60); const ss=(s%60).toString().padStart(2,"0"); return m+":"+ss; }
+
+async function loadPlaylist(){
+  const res = await fetch("playlist.json?ts="+Date.now());
+  if(!res.ok) throw new Error("playlist.json: HTTP "+res.status);
+  return res.json();
+}
+
+function li(t,i){
+  const el=document.createElement("li");
+  el.className="item"; el.dataset.index=i;
+  el.innerHTML = `
+    <div class="item-num">${i+1}</div>
+    <div class="item-meta">
+      <div class="item-title">${t.title||("Трек "+(i+1))}</div>
+      <div class="item-sub">${t.artist||""}</div>
+    </div>
+    <div class="item-len" id="len-${i}">—:—</div>`;
+  return el;
+}
+
+let playlist=[], current=-1;
+const audio=document.getElementById("audio");
+const playBtn=document.getElementById("playBtn");
+const prevBtn=document.getElementById("prevBtn");
+const nextBtn=document.getElementById("nextBtn");
+const seek=document.getElementById("seek");
+const cur=document.getElementById("cur");
+const dur=document.getElementById("dur");
+const titleEl=document.getElementById("trackTitle");
+const subEl=document.getElementById("trackSub");
+const listEl=document.getElementById("list");
+
+function setMeta(i){ const t=playlist[i]; titleEl.textContent=t.title||("Трек "+(i+1)); subEl.textContent=t.file||""; }
+function highlight(){ document.querySelectorAll(".item").forEach(n=>n.classList.remove("active")); const el=document.querySelector('.item[data-index="'+current+'"]'); if(el) el.classList.add("active"); }
+function updatePlayBtn(){ playBtn.textContent = audio.paused ? "▶️" : "⏸"; }
+
+async function playIndex(i){
+  if(i<0 || i>=playlist.length) return;
+  current=i;
+  audio.src = playlist[i].file;
+  setMeta(i);
+  await audio.play().catch(()=>{}); // старт по клику
+  updatePlayBtn(); highlight();
+}
+
+playBtn.addEventListener("click", ()=>{ if(!audio.src){ playIndex(0); } else { audio.paused ? audio.play() : audio.pause(); }});
+prevBtn.addEventListener("click", ()=> playIndex((current-1+playlist.length)%playlist.length));
+nextBtn.addEventListener("click", ()=> playIndex((current+1)%playlist.length));
+
+audio.addEventListener("timeupdate", ()=>{
+  seek.max = audio.duration || 0;
+  seek.value = audio.currentTime || 0;
+  cur.textContent = fmtTime(audio.currentTime);
+  dur.textContent = fmtTime(audio.duration);
+});
+seek.addEventListener("input", ()=>{ if(isFinite(audio.duration)) audio.currentTime = seek.value; });
+audio.addEventListener("ended", ()=> nextBtn.click());
+audio.addEventListener("play", updatePlayBtn);
+audio.addEventListener("pause", updatePlayBtn);
+
+(async function(){
+  try{
+    const data = await loadPlaylist();
+    document.getElementById("albumTitle").textContent = data.title || "Альбом";
+    playlist = data.tracks || [];
+    listEl.innerHTML = "";
+    playlist.forEach((t,i)=> {
+      const node = li(t,i);
+      node.addEventListener("click", ()=> playIndex(i));
+      listEl.appendChild(node);
+      // подставим длительность
+      const a = new Audio(); a.src = t.file;
+      a.addEventListener("loadedmetadata", ()=>{
+        const len=document.getElementById("len-"+i);
+        if(len) len.textContent = fmtTime(a.duration);
+      });
+    });
+  }catch(e){
+    console.error(e);
+    alert("Ошибка загрузки плейлиста: "+e.message);
+  }
+})();
+</script>
+</body>
+</html>
