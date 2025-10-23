@@ -2,153 +2,196 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>WOW SCHOOL — English File: Beginner</title>
+  <link rel="preload" href="playlist.json" as="fetch" crossorigin="anonymous">
   <link rel="stylesheet" href="style.css" />
-  <meta name="color-scheme" content="dark light" />
 </head>
 <body>
-  <div class="wrap">
+  <header class="topbar">
+    <div class="brand">
+      <!-- Если захотите поставить картинку-аватар: положите файл в /img/logo.png -->
+      <!-- <img src="img/logo.png" alt="WOW SCHOOL" class="brand-logo"> -->
+      <span class="brand-text">WOW SCHOOL</span>
+    </div>
+    <h1 class="page-title">English File: Beginner</h1>
+  </header>
 
-    <!-- ====== HEADER ====== -->
-    <header class="site-header">
-      <div class="brand">
-        <!-- Если будет png/svg-логотип, положите рядом и раскомментируйте строку ниже -->
-        <!-- <img src="logo.png" alt="WOW SCHOOL" class="brand-logo" /> -->
-        <span class="brand-text">WOW SCHOOL</span>
-        <h1 class="album-title">English File: Beginner</h1>
-      </div>
-    </header>
-
-    <!-- ====== PLAYER ====== -->
-    <main>
-      <section class="player-card">
-        <div class="now">
-          <div class="meta">
-            <div id="trackTitle" class="track-title">—</div>
-            <div id="trackSub" class="track-sub">00:00 / 00:00</div>
-          </div>
-
-          <div class="controls">
-            <button id="btnPrev" class="btn" aria-label="Предыдущий трек">⏮</button>
-            <button id="btnPlay" class="btn" aria-label="Пуск/Пауза">▶️/⏸</button>
-            <button id="btnNext" class="btn" aria-label="Следующий трек">⏭</button>
-          </div>
-
-          <div class="seek">
-            <input id="seek" type="range" min="0" max="100" value="0" />
-            <div id="time" class="time">0:00 / 0:00</div>
-          </div>
+  <main class="wrap" id="app">
+    <section class="player-card">
+      <div class="now">
+        <div class="meta">
+          <div class="track-title" id="trackTitle">—</div>
+          <div class="track-sub" id="trackSub">0:00 / 0:00</div>
         </div>
+        <div class="controls">
+          <button class="btn" id="prevBtn" title="Предыдущий трек">⏮</button>
+          <button class="btn" id="playPauseBtn" title="Пуск / Пауза">▶️/⏸</button>
+          <button class="btn" id="nextBtn" title="Следующий трек">⏭</button>
+        </div>
+      </div>
 
-        <ol id="list" class="list"></ol>
-      </section>
-    </main>
+      <div class="progress">
+        <input type="range" id="seek" min="0" value="0" step="0.1" />
+      </div>
 
-  </div>
+      <div class="list-wrap">
+        <ol class="list" id="trackList" aria-label="Список треков"></ol>
+      </div>
+
+      <audio id="audio" preload="metadata" crossorigin="anonymous"></audio>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <div class="iframe-hint">
+      <!-- Подсказка для вставки в Miro оставлена здесь ПОД СПОЙЛЕРОМ, но на странице не видна -->
+      <!-- iframe для Miro:
+      <iframe src="https://ВАШ-ДОМЕН/index.html" width="100%" height="520" frameborder="0" allow="autoplay"></iframe>
+      см. также README (инструкция по публикации). -->
+    </div>
+  </footer>
 
   <script>
-    // ===== Простенький плеер =====
-    const audio = new Audio();
+  (function () {
+    const $ = s => document.querySelector(s);
+    const $$ = s => document.querySelectorAll(s);
+
+    const audio = $('#audio');
+    const list = $('#trackList');
+    const seek = $('#seek');
+    const titleEl = $('#trackTitle');
+    const subEl = $('#trackSub');
+    const playBtn = $('#playPauseBtn');
+    const nextBtn = $('#nextBtn');
+    const prevBtn = $('#prevBtn');
+
     let playlist = [];
-    let index = 0;
-    let isSeeking = false;
+    let idx = 0;
+    let seekingByCode = false;
 
-    const elTitle = document.getElementById('trackTitle');
-    const elSub   = document.getElementById('trackSub');
-    const elList  = document.getElementById('list');
-    const elSeek  = document.getElementById('seek');
-    const elTime  = document.getElementById('time');
-    const btnPlay = document.getElementById('btnPlay');
-    const btnPrev = document.getElementById('btnPrev');
-    const btnNext = document.getElementById('btnNext');
+    const fmt = (t) => {
+      if (!isFinite(t)) return '0:00';
+      const m = Math.floor(t / 60);
+      const s = Math.floor(t % 60).toString().padStart(2, '0');
+      return `${m}:${s}`;
+    };
 
-    fetch('playlist.json')
-      .then(r => r.json())
+    // Подгружаем плейлист
+    fetch('playlist.json', { cache: 'no-store' })
+      .then(r => {
+        if (!r.ok) throw new Error('Не удалось загрузить playlist.json');
+        return r.json();
+      })
       .then(data => {
-        playlist = data.tracks || [];
+        playlist = Array.isArray(data.tracks) ? data.tracks : [];
         renderList();
-        if (playlist.length) load(0);
+        load(0, false);
+      })
+      .catch(err => {
+        console.error(err);
+        titleEl.textContent = 'Ошибка загрузки плейлиста';
       });
 
-    function renderList(){
-      elList.innerHTML = '';
+    function renderList() {
+      list.innerHTML = '';
       playlist.forEach((t, i) => {
         const li = document.createElement('li');
         li.className = 'row';
+        li.dataset.i = i.toString();
         li.innerHTML = `
-          <span class="no">${i+1}</span>
-          <button class="row-btn" data-i="${i}" title="Воспроизвести">
-            <span class="row-title">${t.title}</span>
-            <span class="row-len" id="len-${i}">—</span>
-          </button>`;
-        elList.appendChild(li);
+          <button class="row-btn" title="Воспроизвести">
+            <span class="row-idx">${i + 1}</span>
+            <span class="row-title">${t.title ?? 'Без названия'}</span>
+            <span class="row-time" id="d_${i}">—:—</span>
+          </button>
+        `;
+        li.querySelector('.row-btn').addEventListener('click', () => load(i, true));
+        list.appendChild(li);
 
-        // предзагрузка длительности (лениво)
-        const a = new Audio();
-        a.src = t.file;
-        a.addEventListener('loadedmetadata', () => {
-          const s = Math.floor(a.duration||0);
-          document.getElementById(`len-${i}`).textContent = fmt(s);
-        });
+        // Пытаемся получить длительность без начала проигрывания
+        const probe = new Audio();
+        probe.preload = 'metadata';
+        probe.src = t.file;
+        probe.addEventListener('loadedmetadata', () => {
+          const dur = fmt(probe.duration);
+          const cell = document.getElementById('d_' + i);
+          if (cell) cell.textContent = dur;
+        }, { once: true });
+        probe.addEventListener('error', () => {
+          const cell = document.getElementById('d_' + i);
+          if (cell) cell.textContent = '—';
+        }, { once: true });
       });
+    }
 
-      elList.addEventListener('click', e => {
-        const btn = e.target.closest('.row-btn');
-        if (!btn) return;
-        const i = +btn.dataset.i;
-        if (!isNaN(i)) {
-          load(i);
-          play();
-        }
+    function highlight() {
+      $$('.row').forEach(el => el.classList.remove('active'));
+      const cur = list.querySelector(`.row[data-i="${idx}"]`);
+      if (cur) cur.classList.add('active');
+    }
+
+    function load(i, autoplay) {
+      if (!playlist.length) return;
+      idx = (i + playlist.length) % playlist.length;
+      const tr = playlist[idx];
+      audio.src = tr.file;
+      titleEl.textContent = tr.title ?? 'Без названия';
+      subEl.textContent = '0:00 / 0:00';
+      highlight();
+
+      // Стартуем по готовности метаданных
+      audio.addEventListener('loadedmetadata', () => {
+        seek.max = audio.duration || 0;
+        updateTime();
+        if (autoplay) audio.play().catch(() => {/* браузер мог заблокировать автоплей */});
+      }, { once: true });
+
+      // Обработка ошибок трека
+      audio.addEventListener('error', () => {
+        const cell = document.getElementById('d_' + idx);
+        if (cell) cell.textContent = 'ERR';
+        // Переходим к следующему, чтобы пользователь не застревал на битом файле
+        next();
       }, { once: true });
     }
 
-    function load(i){
-      index = i;
-      const t = playlist[index];
-      audio.src = t.file;
-      elTitle.textContent = t.title || '—';
-      elSub.textContent   = t.artist ? t.artist : '';
-      highlight();
+    function playPause() {
+      if (audio.paused) audio.play().catch(() => {});
+      else audio.pause();
+    }
+    function next() { load(idx + 1, true); }
+    function prev() { load(idx - 1, true); }
+
+    function updateTime() {
+      if (!seekingByCode) seek.value = audio.currentTime || 0;
+      subEl.textContent = `${fmt(audio.currentTime)} / ${fmt(audio.duration)}`;
     }
 
-    function highlight(){
-      [...document.querySelectorAll('.row')].forEach((r, i) =>
-        r.classList.toggle('active', i===index)
-      );
-    }
+    // события плеера
+    audio.addEventListener('timeupdate', updateTime);
+    audio.addEventListener('ended', next);
 
-    function play(){ audio.play(); }
-    function pause(){ audio.pause(); }
-
-    btnPlay.onclick = () => audio.paused ? play() : pause();
-    btnPrev.onclick = () => { index = (index-1+playlist.length)%playlist.length; load(index); play(); };
-    btnNext.onclick = () => { index = (index+1)%playlist.length; load(index); play(); };
-
-    audio.addEventListener('timeupdate', () => {
-      if (isSeeking) return;
-      const cur = audio.currentTime||0;
-      const dur = audio.duration||0;
-      const pct = dur ? cur/dur*100 : 0;
-      elSeek.value = pct;
-      elTime.textContent = `${fmt(cur)} / ${fmt(dur)}`;
-    });
-    audio.addEventListener('ended', () => btnNext.click());
-
-    elSeek.addEventListener('input', () => isSeeking = true);
-    elSeek.addEventListener('change', () => {
-      const dur = audio.duration||0;
-      audio.currentTime = dur * (+elSeek.value/100);
-      isSeeking = false;
+    // ползунок
+    seek.addEventListener('input', e => {
+      seekingByCode = true;
+      audio.currentTime = Number(seek.value || 0);
+      seekingByCode = false;
     });
 
-    function fmt(s){
-      s = Math.max(0, Math.floor(s));
-      const m = Math.floor(s/60);
-      const r = s%60;
-      return `${m}:${String(r).padStart(2,'0')}`;
-    }
+    // кнопки
+    playBtn.addEventListener('click', playPause);
+    nextBtn.addEventListener('click', next);
+    prevBtn.addEventListener('click', prev);
+
+    // быстрая клавиатура
+    window.addEventListener('keydown', (e) => {
+      if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+      if (e.code === 'Space') { e.preventDefault(); playPause(); }
+      if (e.code === 'ArrowRight') next();
+      if (e.code === 'ArrowLeft') prev();
+    });
+  })();
   </script>
 </body>
 </html>
