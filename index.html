@@ -1,128 +1,154 @@
 <!doctype html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Аудио-альбом</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WOW SCHOOL — English File: Beginner</title>
+  <link rel="stylesheet" href="style.css" />
+  <meta name="color-scheme" content="dark light" />
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <h1 id="albumTitle">Альбом</h1>
-    <p class="hint">Положите MP3/OGG в папку <code>tracks/</code> и перечислите их в <code>playlist.json</code>. Эту страницу можно вставить в Miro через iFrame.</p>
-  </header>
+  <div class="wrap">
 
-  <main>
-    <div class="player-card">
-      <div class="now">
-        <div class="meta">
-          <div class="track-title" id="trackTitle">—</div>
-          <div class="track-sub" id="trackSub">—</div>
-        </div>
-        <div class="controls">
-          <button id="prevBtn" title="Предыдущий">⏮</button>
-          <button id="playBtn" title="Воспроизвести/Пауза">▶️/⏸</button>
-          <button id="nextBtn" title="Следующий">⏭</button>
-          <div class="time"><span id="cur">0:00</span> / <span id="dur">0:00</span></div>
-        </div>
-        <audio id="audio" preload="metadata"></audio>
-        <input id="seek" type="range" min="0" max="100" value="0" step="0.1">
+    <!-- ====== HEADER ====== -->
+    <header class="site-header">
+      <div class="brand">
+        <!-- Если будет png/svg-логотип, положите рядом и раскомментируйте строку ниже -->
+        <!-- <img src="logo.png" alt="WOW SCHOOL" class="brand-logo" /> -->
+        <span class="brand-text">WOW SCHOOL</span>
+        <h1 class="album-title">English File: Beginner</h1>
       </div>
+    </header>
 
-      <ul id="list" class="list"></ul>
-    </div>
-  </main>
+    <!-- ====== PLAYER ====== -->
+    <main>
+      <section class="player-card">
+        <div class="now">
+          <div class="meta">
+            <div id="trackTitle" class="track-title">—</div>
+            <div id="trackSub" class="track-sub">00:00 / 00:00</div>
+          </div>
 
-  <footer>
-    <small>Вставка в Miro: <code>&lt;iframe src="https://ВАШ-ДОМЕН/index.html" width="100%" height="520" frameborder="0" allow="autoplay"&gt;&lt;/iframe&gt;</code></small>
-  </footer>
-</div>
+          <div class="controls">
+            <button id="btnPrev" class="btn" aria-label="Предыдущий трек">⏮</button>
+            <button id="btnPlay" class="btn" aria-label="Пуск/Пауза">▶️/⏸</button>
+            <button id="btnNext" class="btn" aria-label="Следующий трек">⏭</button>
+          </div>
 
-<script>
-function fmtTime(s){ if(!isFinite(s)) return "0:00"; s=Math.floor(s); const m=Math.floor(s/60); const ss=(s%60).toString().padStart(2,"0"); return m+":"+ss; }
+          <div class="seek">
+            <input id="seek" type="range" min="0" max="100" value="0" />
+            <div id="time" class="time">0:00 / 0:00</div>
+          </div>
+        </div>
 
-async function loadPlaylist(){
-  const res = await fetch("playlist.json?ts="+Date.now());
-  if(!res.ok) throw new Error("playlist.json: HTTP "+res.status);
-  return res.json();
-}
+        <ol id="list" class="list"></ol>
+      </section>
+    </main>
 
-function li(t,i){
-  const el=document.createElement("li");
-  el.className="item"; el.dataset.index=i;
-  el.innerHTML = `
-    <div class="item-num">${i+1}</div>
-    <div class="item-meta">
-      <div class="item-title">${t.title||("Трек "+(i+1))}</div>
-      <div class="item-sub">${t.artist||""}</div>
-    </div>
-    <div class="item-len" id="len-${i}">—:—</div>`;
-  return el;
-}
+  </div>
 
-let playlist=[], current=-1;
-const audio=document.getElementById("audio");
-const playBtn=document.getElementById("playBtn");
-const prevBtn=document.getElementById("prevBtn");
-const nextBtn=document.getElementById("nextBtn");
-const seek=document.getElementById("seek");
-const cur=document.getElementById("cur");
-const dur=document.getElementById("dur");
-const titleEl=document.getElementById("trackTitle");
-const subEl=document.getElementById("trackSub");
-const listEl=document.getElementById("list");
+  <script>
+    // ===== Простенький плеер =====
+    const audio = new Audio();
+    let playlist = [];
+    let index = 0;
+    let isSeeking = false;
 
-function setMeta(i){ const t=playlist[i]; titleEl.textContent=t.title||("Трек "+(i+1)); subEl.textContent=t.file||""; }
-function highlight(){ document.querySelectorAll(".item").forEach(n=>n.classList.remove("active")); const el=document.querySelector('.item[data-index="'+current+'"]'); if(el) el.classList.add("active"); }
-function updatePlayBtn(){ playBtn.textContent = audio.paused ? "▶️" : "⏸"; }
+    const elTitle = document.getElementById('trackTitle');
+    const elSub   = document.getElementById('trackSub');
+    const elList  = document.getElementById('list');
+    const elSeek  = document.getElementById('seek');
+    const elTime  = document.getElementById('time');
+    const btnPlay = document.getElementById('btnPlay');
+    const btnPrev = document.getElementById('btnPrev');
+    const btnNext = document.getElementById('btnNext');
 
-async function playIndex(i){
-  if(i<0 || i>=playlist.length) return;
-  current=i;
-  audio.src = playlist[i].file;
-  setMeta(i);
-  await audio.play().catch(()=>{}); // старт по клику
-  updatePlayBtn(); highlight();
-}
-
-playBtn.addEventListener("click", ()=>{ if(!audio.src){ playIndex(0); } else { audio.paused ? audio.play() : audio.pause(); }});
-prevBtn.addEventListener("click", ()=> playIndex((current-1+playlist.length)%playlist.length));
-nextBtn.addEventListener("click", ()=> playIndex((current+1)%playlist.length));
-
-audio.addEventListener("timeupdate", ()=>{
-  seek.max = audio.duration || 0;
-  seek.value = audio.currentTime || 0;
-  cur.textContent = fmtTime(audio.currentTime);
-  dur.textContent = fmtTime(audio.duration);
-});
-seek.addEventListener("input", ()=>{ if(isFinite(audio.duration)) audio.currentTime = seek.value; });
-audio.addEventListener("ended", ()=> nextBtn.click());
-audio.addEventListener("play", updatePlayBtn);
-audio.addEventListener("pause", updatePlayBtn);
-
-(async function(){
-  try{
-    const data = await loadPlaylist();
-    document.getElementById("albumTitle").textContent = data.title || "Альбом";
-    playlist = data.tracks || [];
-    listEl.innerHTML = "";
-    playlist.forEach((t,i)=> {
-      const node = li(t,i);
-      node.addEventListener("click", ()=> playIndex(i));
-      listEl.appendChild(node);
-      // подставим длительность
-      const a = new Audio(); a.src = t.file;
-      a.addEventListener("loadedmetadata", ()=>{
-        const len=document.getElementById("len-"+i);
-        if(len) len.textContent = fmtTime(a.duration);
+    fetch('playlist.json')
+      .then(r => r.json())
+      .then(data => {
+        playlist = data.tracks || [];
+        renderList();
+        if (playlist.length) load(0);
       });
+
+    function renderList(){
+      elList.innerHTML = '';
+      playlist.forEach((t, i) => {
+        const li = document.createElement('li');
+        li.className = 'row';
+        li.innerHTML = `
+          <span class="no">${i+1}</span>
+          <button class="row-btn" data-i="${i}" title="Воспроизвести">
+            <span class="row-title">${t.title}</span>
+            <span class="row-len" id="len-${i}">—</span>
+          </button>`;
+        elList.appendChild(li);
+
+        // предзагрузка длительности (лениво)
+        const a = new Audio();
+        a.src = t.file;
+        a.addEventListener('loadedmetadata', () => {
+          const s = Math.floor(a.duration||0);
+          document.getElementById(`len-${i}`).textContent = fmt(s);
+        });
+      });
+
+      elList.addEventListener('click', e => {
+        const btn = e.target.closest('.row-btn');
+        if (!btn) return;
+        const i = +btn.dataset.i;
+        if (!isNaN(i)) {
+          load(i);
+          play();
+        }
+      }, { once: true });
+    }
+
+    function load(i){
+      index = i;
+      const t = playlist[index];
+      audio.src = t.file;
+      elTitle.textContent = t.title || '—';
+      elSub.textContent   = t.artist ? t.artist : '';
+      highlight();
+    }
+
+    function highlight(){
+      [...document.querySelectorAll('.row')].forEach((r, i) =>
+        r.classList.toggle('active', i===index)
+      );
+    }
+
+    function play(){ audio.play(); }
+    function pause(){ audio.pause(); }
+
+    btnPlay.onclick = () => audio.paused ? play() : pause();
+    btnPrev.onclick = () => { index = (index-1+playlist.length)%playlist.length; load(index); play(); };
+    btnNext.onclick = () => { index = (index+1)%playlist.length; load(index); play(); };
+
+    audio.addEventListener('timeupdate', () => {
+      if (isSeeking) return;
+      const cur = audio.currentTime||0;
+      const dur = audio.duration||0;
+      const pct = dur ? cur/dur*100 : 0;
+      elSeek.value = pct;
+      elTime.textContent = `${fmt(cur)} / ${fmt(dur)}`;
     });
-  }catch(e){
-    console.error(e);
-    alert("Ошибка загрузки плейлиста: "+e.message);
-  }
-})();
-</script>
+    audio.addEventListener('ended', () => btnNext.click());
+
+    elSeek.addEventListener('input', () => isSeeking = true);
+    elSeek.addEventListener('change', () => {
+      const dur = audio.duration||0;
+      audio.currentTime = dur * (+elSeek.value/100);
+      isSeeking = false;
+    });
+
+    function fmt(s){
+      s = Math.max(0, Math.floor(s));
+      const m = Math.floor(s/60);
+      const r = s%60;
+      return `${m}:${String(r).padStart(2,'0')}`;
+    }
+  </script>
 </body>
 </html>
