@@ -149,4 +149,70 @@ body{
   line-height:1.2;
   margin:6px 0 0;
 }
+/* === Постер-обложка поверх плеера (минимальные правки) === */
+.poster{
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(1200px 700px at 30% 10%, rgba(255,255,255,.03) 0%, transparent 60%),
+    radial-gradient(900px 600px at 90% 40%, rgba(255,255,255,.03) 0%, transparent 60%),
+    linear-gradient(180deg, #1a1425 0%, #0e0a14 120%);
+  transition: opacity .25s ease, visibility .25s ease;
+}
+
+.poster.hide{
+  opacity: 0;
+  visibility: hidden;
+}
+
+.poster img{
+  max-width: min(82vw, 950px);
+  width: 82%;
+  height: auto;
+  border-radius: 18px;
+  display: block;
+  box-shadow: 0 40px 120px rgba(0,0,0,.55), 0 2px 24px rgba(0,0,0,.35);
+  filter: saturate(1.02) contrast(1.02);
+}
+
+/* Большая фиолетовая кнопка Play на обложке */
+.poster .poster-play{
+  position: absolute;
+  width: clamp(66px, 8.5vw, 92px);
+  height: clamp(66px, 8.5vw, 92px);
+  border-radius: 999px;
+  border: none;
+  color: #fff;
+  background: linear-gradient(180deg, var(--purple, #7b44ff) 0%, #5b2be8 100%);
+  box-shadow: 0 14px 40px rgba(92, 46, 240, .45), 0 2px 10px rgba(0,0,0,.25) inset;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: transform .15s ease, filter .15s ease, box-shadow .15s ease;
+  /* центр относительно изображения */
+  transform: translateY(0);
+}
+
+.poster .poster-play:hover{
+  filter: brightness(1.06);
+  transform: translateY(-2px);
+}
+
+.poster .poster-play:active{
+  transform: translateY(0);
+}
+
+/* Центруем кнопку над изображением */
+.poster{
+  gap: 0;
+}
+.poster img + .poster-play{
+  /* поместим кнопку поверх центра картинки */
+  position: absolute;
+}
+
 
