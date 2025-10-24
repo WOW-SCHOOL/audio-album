@@ -214,5 +214,45 @@ body{
   /* поместим кнопку поверх центра картинки */
   position: absolute;
 }
+/* === Compact view for Miro: делаем «как слева» === */
+:root{
+  /* ширина «карточки»; уменьшите до 800–840px, если хотите ещё ближе */
+  --wrap-max: 820px;
+
+  /* размеры заголовков */
+  --brand-size: clamp(14px, 2.1vw, 22px);
+  --title-size: clamp(28px, 4vw, 44px);
+}
+
+/* общий контейнер страницы */
+.wrap{
+  max-width: var(--wrap-max);
+  margin: 28px auto;
+  padding: 24px 24px 28px;
+}
+
+/* верхняя подпись WOW SCHOOL */
+#brand,
+.brand{
+  font-size: var(--brand-size);
+  text-align: center;
+  letter-spacing: .6px;
+  margin: 0 0 6px;
+  opacity: .95;
+}
+
+/* заголовок курса */
+#albumTitle,
+.album-title{
+  font-size: var(--title-size);
+  text-align: center;
+  font-weight: 800;
+  letter-spacing: .3px;
+  margin: 8px 0 18px;
+}
+
+/* карточка плеера и низ с большими кнопками */
+.player-card{ padding: 18px; border-radius: 22px; }
+.controls{ gap: 18px; padding: 18px 0 10px; }
 
 
